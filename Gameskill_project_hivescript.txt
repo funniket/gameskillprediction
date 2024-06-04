@@ -1,0 +1,84 @@
+# to copy the file to hdfs server
+
+hdfs dfs -copyFromLocal cod.csv
+
+# to check if the file exists
+
+hdfs dfs -ls cod.csv
+
+# Running hive to create hive table to read dataset
+
+hive
+# creating database
+CREATE DATABASE game_skill;
+use game_skill;
+
+#creating the table
+
+CREATE TABLE gamedata(
+username varchar(255),
+wins int,
+kills int,
+kdratio float,
+killstreak int,
+level int,
+losses int,
+prestige int,
+hits float,
+timeplayed int,
+headshots int,
+averagetime double,
+gamesplayed int,
+assists int,
+misses int,
+xp int,
+scoreperminute double,
+shots int,
+deaths int)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE;
+
+#to check the table columns
+
+DESCRIBE gamedata;
+
+#to load the csv data into the table gamedata
+
+LOAD DATA LOCAL INPATH '/home/maria_dev/cod.csv'  INTO TABLE gamedata;
+
+#Data cleaning or checking using hive
+
+SELECT count(*) as count_values from gamedata
+where wins IS NULL or kills IS NULL;
+
+SELECT AVG(wins), MAX(kills) from gamedata;
+
+#to check if there is any duplicate data
+
+select username, count(*) from gamedata group by username having count(*) > 1;
+
+#To drop the unnecessory columns
+
+CREATE TABLE clean_gamedata(
+    > username varchar(255),
+    > wins int,
+    > kills int,
+    > kdratio float,
+    > level int,
+    > deaths int);
+
+INSERT overwrite TABLE clean_gamedata SELECT username, wins, kills, kdratio, level, deaths from gamedata;
+
+drop table gamedata;
+
+alter table clean_gamedata RENAME TO gamedata;
+
+#save the cleaned data to local
+
+INSERT OVERWRITE DIRECTORY '/user/maria_dev' ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' SELECT * FROM gamedata;
+
+
+
+
+
